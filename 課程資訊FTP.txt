@@ -1,0 +1,12 @@
+
+本課程相關講義將會放在FTP，
+
+FTP Address: 140.116.154.1
+
+Port: 21
+
+ID: opencvdl2020
+
+Password: opencvdl2020
+
+請各位同學注意，謝謝。
