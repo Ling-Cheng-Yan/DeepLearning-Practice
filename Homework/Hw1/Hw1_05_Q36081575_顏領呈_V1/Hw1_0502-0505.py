@@ -4,6 +4,11 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.image as img
+import numpy as np
+from torchsummary import summary
 
 # GPU
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
@@ -48,22 +53,6 @@ lr = 0.00116
 epochs = 3
 optimizer = optim.SGD(net.parameters(), lr=lr, momentum=0.9)
 
-'''
-Q5.2
-'''
-print("--------Q5.2's Answer--------")
-print("Print out training hyperparameters (batch size, learning rate, optimizer). ")
-print("batch size: 8")
-print("learning rate:", lr)
-print("optimizer:", optimizer)
-
-'''
-Q5.3
-'''
-print("--------Q5.3's Answer--------")
-print("Construct and show your model structure. (You can use available architecture provided by ML framework to build your model)")
-print(net)
-
 
 '''
 Q5.4
@@ -72,8 +61,9 @@ print("--------Q5.4's Answer--------")
 print("Training your model at least 20 epochs by your own computer, save your model and take a screenshot of your training loss and accuracy. No saved images no points.")
 # Train
 print("------Training------")
+training_losses = []
 for epoch in range(epochs):
-    running_loss = 0.0
+    training_loss = 0.0
 
     for times, data in enumerate(trainLoader, 0):
         inputs, labels = data
@@ -89,14 +79,16 @@ for epoch in range(epochs):
         optimizer.step()
 
         # print statistics
-        running_loss += loss.item()
+        training_loss += (loss.item()/2000)
+        training_losses.append(training_loss)
 
         if times % 100 == 99 or times+1 == len(trainLoader):
-            print('[%d/%d, %d/%d] loss: %.3f' % (epoch+1, epochs, times+1, len(trainLoader), running_loss/2000))
+            print('[%d/%d, %d/%d] loss: %.3f' % (epoch+1, epochs, times+1, len(trainLoader), training_loss))
 
 print('Finished Training')
 
 # Test
+corrects = []
 correct = 0
 total = 0
 with torch.no_grad():
@@ -107,8 +99,9 @@ with torch.no_grad():
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
+        corrects.append(100*correct/total)
 
-print('Accuracy of the network on the 10000 test inputs: %d %%' % (100 * correct / total))
+print('Accuracy of the network on the 10000 test inputs: %d %%' % (100*correct / total))
 
 
 class_correct = list(0. for i in range(10))
@@ -125,6 +118,37 @@ with torch.no_grad():
             class_correct[label] += c[i].item()
             class_total[label] += 1
 
+plt.plot(training_losses, label='Training loss')
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.legend(frameon=False)
+plt.show()
+
+plt.plot(corrects, label='Testing accuracy')
+plt.xlabel("Epochs")
+plt.ylabel("%")
+plt.legend(frameon=False)
+plt.show()
+
+
+
+
+'''
+Q5.2
+'''
+print("--------Q5.2's Answer--------")
+print("Print out training hyperparameters (batch size, learning rate, optimizer). ")
+print("batch size: 8")
+print("learning rate:", lr)
+print("optimizer:", optimizer)
+
+'''
+Q5.3
+'''
+print("--------Q5.3's Answer--------")
+print("Construct and show your model structure. (You can use available architecture provided by ML framework to build your model)")
+summary(net,(3, 32, 32))
+
 
 '''
 Q5.5
@@ -134,3 +158,8 @@ print("Load your model trained at 5.4, let us choose one image from test images,
 print("------Testing Image Index------")
 for i in range(10):
     print('Accuracy of %5s : %2d %%' % (classes[i], 100 * class_correct[i] / class_total[i]))
+
+# Save the model
+torch.save(net.state_dict(), 'cifar10-model.ckpt')
+
+

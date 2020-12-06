@@ -37,6 +37,7 @@ cv2.imwrite('gaussian_Chihiro.jpg', grad)
 #Q3.2
 print("Q3.2-Sobel X Answer: ")
 print("Use Sobel edge detection to detect vertical edge by your own 3x3 Sobel X operator.")
+'''
 def sobelOperatorX(img):
     container = np.copy(img)
     size = container.shape
@@ -54,6 +55,31 @@ b_sobelx = cv2.cvtColor(b_sobelx, cv2.COLOR_GRAY2RGB)
 plt.imshow(b_sobelx)
 plt.show()
 cv2.imwrite('SobelX_Chihiro.jpg', b_sobelx)
+'''
+def interval_mapping(image, from_min, from_max, to_min, to_max):
+    from_range = from_max - from_min
+    to_range = to_max - to_min
+    scaled = np.array((image - from_min) / float(from_range), dtype=float)
+    return to_min + (scaled * to_range)
+
+img = cv2.imread('Chihiro.jpg', 0)
+blurred_img = cv2.imread('gaussian_Chihiro.jpg', 0)
+
+s_mask = 17
+
+sobely = np.abs(cv2.Sobel(img,cv2.CV_64F,1,0,ksize=s_mask))
+sobely = interval_mapping(sobely, np.min(sobely), np.max(sobely), 0, 255)
+b_sobely = np.abs(cv2.Sobel(blurred_img, cv2.CV_64F, 1, 0, ksize=s_mask))
+b_sobely = interval_mapping(b_sobely, np.min(sobely), np.max(sobely), 0, 255)
+
+fig = plt.figure(figsize=(10, 14))
+
+plt.subplot(3,2,4),plt.imshow(b_sobely,cmap = 'gray')
+plt.title('Blurred Sobel X'), plt.xticks([]), plt.yticks([])
+plt.tight_layout()
+
+plt.show()
+cv2.imwrite('SobelY_Chihiro.jpg', b_sobely)
 
 
 #Q3.3
